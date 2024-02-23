@@ -9,11 +9,10 @@ public class EditSystem : MonoBehaviour
     private Camera camera;
     bool isSelected = false,isOperation = false,isActiveRmbMenu = false;
     private float moveY,moveX;
-    private float storage;
+    private float storageX,storageY,storageZ;
     GameObject selectedObject = null;
     [SerializeField] GameObject rmbMenu;
     [SerializeField] GameObject lmbMenu;
-    [SerializeField] Button resizeButton;
 
     private void Awake()
     {
@@ -95,10 +94,16 @@ public class EditSystem : MonoBehaviour
     {
         Debug.Log("resize");
         isOperation = true;
+        Vector3 localScale = selectedObject.transform.localScale;
+        storageX = localScale.x;
+        storageY = localScale.y;
+        storageZ = localScale.z;
         while (isOperation)
         {
-            storage += moveY + moveX;
-            selectedObject.transform.localScale = new Vector3(storage, storage, storage);
+            storageX += moveY + moveX;
+            storageY += moveY + moveX;
+            storageZ += moveY + moveX;
+            selectedObject.transform.localScale = new Vector3(storageX, storageY, storageZ);
             yield return new WaitForSeconds(0.02f);
         }
     }
