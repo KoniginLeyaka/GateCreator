@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using Vector3 = UnityEngine.Vector3;
 
 public class EditSystem : MonoBehaviour
 {
@@ -13,12 +15,32 @@ public class EditSystem : MonoBehaviour
     GameObject selectedObject = null;
     [SerializeField] GameObject rmbMenu;
     [SerializeField] GameObject lmbMenu;
+    [SerializeField] Material shaderObject;
+    [SerializeField] Material defaultMaterial;
 
     private void Awake()
     {
         camera = Camera.main;
         rmbMenu.SetActive(false);
         lmbMenu.SetActive(false);
+    }
+
+    private void SelectObject(RaycastHit hit, Vector3 mousePos, Vector3 vector)
+    {
+        isSelected = true;
+        Debug.Log("Объект выбран: " + hit.collider.gameObject.name);
+        selectedObject = hit.collider.gameObject;
+        lmbMenu.transform.position = mousePos + vector;
+        lmbMenu.SetActive(true);
+        selectedObject.GetComponent<MeshRenderer>().material = shaderObject;
+    }
+    private void UnselectObject(RaycastHit hit)
+    {
+        isSelected = false;
+        lmbMenu.SetActive(false);
+        Debug.Log("Выделение объекта убрано: " + hit.collider.gameObject.name);
+        selectedObject.GetComponent<MeshRenderer>().material = defaultMaterial;
+        selectedObject = null;
     }
 
     void Update()
@@ -39,19 +61,18 @@ public class EditSystem : MonoBehaviour
                     int layer = hit.collider.gameObject.layer;
                     if (layer == 6 && !isSelected && !isOperation)
                     {
-                        isSelected = true;
-                        Debug.Log("Объект выбран: " + hit.collider.gameObject.name);
-                        selectedObject = hit.collider.gameObject;
-                        lmbMenu.transform.position = mousePos + vector;
-                        lmbMenu.SetActive(true);
+                        SelectObject(hit, mousePos, vector);
                     }
                     else if (layer == 6 && isSelected && !isOperation)
                     {
-                        isSelected = false;
-                        lmbMenu.SetActive(false);
-                        Debug.Log("Выделение объекта убрано: " + hit.collider.gameObject.name);
-                        selectedObject = null;
+                        if (hit.collider.gameObject == selectedObject) UnselectObject(hit);
+                        else
+                        {
+                            UnselectObject(hit);
+                            SelectObject(hit, mousePos, vector);
+                        }
                     }
+                    if (layer != 6 && isSelected && !isOperation) UnselectObject(hit);
                 }
             }
             if (Input.GetMouseButtonDown(0) && isOperation)
